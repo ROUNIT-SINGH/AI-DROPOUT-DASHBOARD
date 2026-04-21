@@ -1,0 +1,17 @@
+{
+  "name": "ai-dropout-dashboard",
+  "version": "1.0.0",
+  "description": "AI Dropout Dashboard project runner",
+  "scripts": {
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "backend": "venv\\Scripts\\uvicorn backend.main:app --reload",
+    "frontend": "cd orchids-project--generator && npm run dev",
+    "frontend-test": "cd frontend && npm run dev",
+    "train": "venv\\Scripts\\python backend/ml/train.py",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
