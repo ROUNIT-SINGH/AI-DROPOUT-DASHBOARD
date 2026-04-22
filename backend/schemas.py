@@ -24,6 +24,7 @@ class StudentResponse(StudentBase):
 class ChatRequest(BaseModel):
     student_id: str
     message: str
+    language: Optional[str] = "auto"  # e.g. "auto", "Hindi", "Spanish", "English"
 
 class ChatResponse(BaseModel):
     reply: str

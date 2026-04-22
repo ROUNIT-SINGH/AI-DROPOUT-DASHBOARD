@@ -3,12 +3,34 @@ import './App.css';
 import { createStudent, chatWithCounselor } from './api';
 import type { Student, StudentCreate } from './api';
 
+const LANGUAGES = [
+  { code: 'auto', label: '🌐 Auto Detect' },
+  { code: 'English', label: '🇬🇧 English' },
+  { code: 'Hindi', label: '🇮🇳 Hindi (हिंदी)' },
+  { code: 'Hinglish', label: '🇮🇳 Hinglish' },
+  { code: 'Spanish', label: '🇪🇸 Spanish' },
+  { code: 'French', label: '🇫🇷 French' },
+  { code: 'Arabic', label: '🇸🇦 Arabic' },
+  { code: 'Bengali', label: '🇧🇩 Bengali (বাংলা)' },
+  { code: 'Tamil', label: '🇮🇳 Tamil (தமிழ்)' },
+  { code: 'Telugu', label: '🇮🇳 Telugu (తెలుగు)' },
+  { code: 'Marathi', label: '🇮🇳 Marathi (मराठी)' },
+  { code: 'Gujarati', label: '🇮🇳 Gujarati (ગુજરાતી)' },
+  { code: 'Punjabi', label: '🇮🇳 Punjabi (ਪੰਜਾਬੀ)' },
+  { code: 'Urdu', label: '🇵🇰 Urdu (اردو)' },
+  { code: 'German', label: '🇩🇪 German' },
+  { code: 'Portuguese', label: '🇧🇷 Portuguese' },
+  { code: 'Chinese', label: '🇨🇳 Chinese (中文)' },
+  { code: 'Japanese', label: '🇯🇵 Japanese (日本語)' },
+];
+
 function App() {
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(false);
   const [chatMessage, setChatMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<{ sender: 'user' | 'bot', text: string }[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('auto');
 
   // Form State
   const [formData, setFormData] = useState<StudentCreate>({
@@ -43,7 +65,10 @@ function App() {
     try {
       const result = await createStudent(formData);
       setStudent(result);
-      setChatHistory([{ sender: 'bot', text: `Hi! I'm the AI Counselor. I see you're looking at ${result.name}'s profile. How can I help you support this student?` }]);
+      setChatHistory([{ 
+        sender: 'bot', 
+        text: `Hi! I'm your AI Counselor powered by Gemini. I've reviewed ${result.name}'s profile — risk category is ${result.risk_category}. How can I help you support this student? You can chat in any language!` 
+      }]);
     } catch (error) {
       console.error("Analysis failed", error);
       alert("Failed to analyze student. Is the backend running?");
@@ -64,12 +89,13 @@ function App() {
     try {
       const res = await chatWithCounselor({
         student_id: student.student_id,
-        message: userMsg
+        message: userMsg,
+        language: selectedLanguage
       });
       setChatHistory(prev => [...prev, { sender: 'bot', text: res.reply }]);
     } catch (error) {
       console.error("Chat failed", error);
-      setChatHistory(prev => [...prev, { sender: 'bot', text: "Sorry, I couldn't process that right now. Please check if the LLM is running." }]);
+      setChatHistory(prev => [...prev, { sender: 'bot', text: "Sorry, I couldn't process that. Please check if the backend is running." }]);
     } finally {
       setChatLoading(false);
     }
@@ -79,7 +105,7 @@ function App() {
     <div className="app-container">
       <div className="header">
         <h1>AI Dropout Dashboard</h1>
-        <p>Early Warning System & AI Counselor</p>
+        <p>Early Warning System &amp; AI Counselor · Powered by Gemini</p>
       </div>
 
       <div className="main-content">
@@ -155,10 +181,27 @@ function App() {
 
         {/* Right Column: AI Counselor Chat */}
         <div className="card chat-container">
-          <h2>AI Counselor</h2>
+          <div className="chat-header-row">
+            <h2>🤖 AI Counselor</h2>
+            <div className="language-selector-wrapper">
+              <label htmlFor="language-select">🌐 Language</label>
+              <select
+                id="language-select"
+                value={selectedLanguage}
+                onChange={e => setSelectedLanguage(e.target.value)}
+                className="language-select"
+              >
+                {LANGUAGES.map(lang => (
+                  <option key={lang.code} value={lang.code}>{lang.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           {!student ? (
             <div style={{ textAlign: 'center', opacity: 0.5, marginTop: '2rem' }}>
               <p>Analyze a student to start a counseling session.</p>
+              <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>Supports 18+ languages including Hindi, Tamil, Spanish, and more.</p>
             </div>
           ) : (
             <>
@@ -169,8 +212,8 @@ function App() {
                   </div>
                 ))}
                 {chatLoading && (
-                  <div className="message bot" style={{ opacity: 0.7 }}>
-                    Typing...
+                  <div className="message bot typing-indicator" style={{ opacity: 0.7 }}>
+                    <span></span><span></span><span></span>
                   </div>
                 )}
               </div>
@@ -179,7 +222,7 @@ function App() {
                   type="text"
                   value={chatMessage}
                   onChange={e => setChatMessage(e.target.value)}
-                  placeholder="Ask about retention strategies..."
+                  placeholder={`Ask in any language${selectedLanguage !== 'auto' ? ` (${selectedLanguage})` : ''}...`}
                   disabled={chatLoading}
                 />
                 <button type="submit" disabled={chatLoading}>Send</button>

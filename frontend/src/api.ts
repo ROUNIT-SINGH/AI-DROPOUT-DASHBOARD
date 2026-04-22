@@ -27,6 +27,7 @@ export interface StudentCreate {
 export interface ChatRequest {
     student_id: string;
     message: string;
+    language?: string;  // e.g. "auto", "Hindi", "Spanish", "English"
 }
 
 export const createStudent = async (student: StudentCreate): Promise<Student> => {

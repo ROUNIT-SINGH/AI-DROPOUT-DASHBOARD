@@ -58,8 +58,19 @@ def chat_with_student(chat_req: schemas.ChatRequest, db: Session = Depends(datab
     if not student:
         raise HTTPException(status_code=404, detail="Student not found for context")
         
-    context = f"Student {student.name} has a GPA of {student.gpa}, attendance of {student.attendance_rate*100}%. Risk category: {student.risk_category}."
-    reply = agent.get_chat_response(chat_req.message, context)
+    context = (
+        f"Student Name: {student.name}\n"
+        f"GPA: {student.gpa:.2f}\n"
+        f"Attendance Rate: {student.attendance_rate * 100:.1f}%\n"
+        f"Failed Courses: {student.failed_courses}\n"
+        f"Financial Aid: {'Yes' if student.financial_aid else 'No'}\n"
+        f"Extracurricular Activities: {'Yes' if student.extracurricular_activities else 'No'}\n"
+        f"Dropout Risk Score: {(student.dropout_risk_score or 0) * 100:.1f}%\n"
+        f"Risk Category: {student.risk_category}"
+    )
+    
+    language = getattr(chat_req, 'language', 'auto') or 'auto'
+    reply = agent.get_chat_response(chat_req.message, context, language)
     
     # Save to history
     user_msg = models.ChatHistory(student_id=student.student_id, message=chat_req.message, is_user=True)
